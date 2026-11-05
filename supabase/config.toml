@@ -1,0 +1,2 @@
+[functions.nightfall-auth]
+verify_jwt = false
