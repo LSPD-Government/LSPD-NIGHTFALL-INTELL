@@ -35,3 +35,12 @@ The visual direction is a midnight navy night-sky theme with subtle stars, blue 
 
 ## Current limitations
 This first full structure includes sign-in, record creation, searchable lists, dashboard counts, and a system/admin information page. Record editing/deletion screens, file attachments, password reset UI, and full activity-log viewer are not included yet. Those can be added after the initial deployment is tested.
+
+
+## Account access flow
+- Applicants register with an in-city name, a real email address for verification/recovery, and a password.
+- The in-city name and email can both be used at sign-in with the same password. Username lookup is handled by the Supabase Edge Function, not by exposing email addresses in the public profile table.
+- New accounts start as **Pending** and cannot read or create intelligence records until Command/Admin approves them.
+- Command/Admin users can approve pending requests from the Administration page.
+- The website does not persist the signed-in session in browser storage. A page refresh requires signing in again. The browser may independently offer to save a password; users can decline that prompt.
+- The site does not display or store readable passwords. Supabase Authentication handles password verification.
