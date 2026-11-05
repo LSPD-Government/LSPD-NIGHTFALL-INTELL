@@ -154,7 +154,7 @@ begin
     execute format('drop policy if exists "admin delete %1$s" on public.%1$I',t);
     execute format('create policy "admin delete %1$s" on public.%1$I for delete to authenticated using (public.nightfall_is_approved() and public.nightfall_user_role()=''admin'')',t);
   end loop;
-end $;
+end $$;
 drop policy if exists "staff read activity" on public.nightfall_activity;
 create policy "staff read activity" on public.nightfall_activity for select to authenticated using (public.nightfall_is_approved());
 drop policy if exists "staff add activity" on public.nightfall_activity;
