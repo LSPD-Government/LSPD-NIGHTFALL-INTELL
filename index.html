@@ -17,9 +17,20 @@
       <p class="eyebrow">LOS SANTOS POLICE DEPARTMENT</p><h1>Intelligence<br><span>After Dark.</span></h1>
       <p class="muted">A centralized workspace for investigations, intelligence records, and department coordination.</p>
       <form id="login-form" class="auth-form">
-        <label>Email address<input id="email" type="email" autocomplete="username" required placeholder="department email"></label>
+        <label>In-city name or email<input id="identifier" type="text" autocomplete="username" required placeholder="Detective name or email"></label>
         <label>Password<input id="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></label>
         <button class="primary-btn" type="submit">Access Nightfall <span>↗</span></button><p id="auth-message" class="form-message" role="status"></p>
+      </form>
+      <div class="auth-switch"><span>New to Nightfall?</span><button type="button" id="show-register" class="link-btn">Create an account</button></div>
+      <form id="register-form" class="auth-form hidden">
+        <label>In-city name<input id="register-name" type="text" maxlength="40" autocomplete="nickname" required placeholder="Your department / RP name"></label>
+        <label>Email address<input id="register-email" type="email" autocomplete="email" required placeholder="For verification and account recovery"></label>
+        <label>Create password<input id="register-password" type="password" minlength="8" autocomplete="new-password" required placeholder="At least 8 characters"></label>
+        <label>Confirm password<input id="register-confirm" type="password" minlength="8" autocomplete="new-password" required placeholder="Enter password again"></label>
+        <button class="primary-btn" type="submit">Submit account request <span>↗</span></button>
+        <p id="register-message" class="form-message" role="status"></p>
+        <p class="privacy-note">Your email is used for sign-in, verification, and recovery. Your in-city name is your alternate login. Accounts remain pending until Detective Command approves them. Your browser may offer to save your password; that choice is controlled by you.</p>
+        <button type="button" id="show-login" class="link-btn">Back to sign in</button>
       </form>
       <p class="footnote">RESTRICTED ACCESS · AUTHORIZED DEPARTMENT PERSONNEL ONLY</p>
     </section>
