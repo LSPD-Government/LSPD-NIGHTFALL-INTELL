@@ -33,10 +33,53 @@
   async function save(e){e.preventDefault();const k=$("record-dialog").dataset.module,m=modules[k],fd=new FormData(e.target),payload={created_by:user.id};for(const f of m.fields){const v=String(fd.get(f[0])||"").trim();if(v)payload[f[0]]=v}const result=await db.from(m.table).insert(payload);if(result.error){toast("Save failed: "+result.error.message);return}await db.from("nightfall_activity").insert({user_id:user.id,action:"Created record",record_type:k,details:"New entry in "+m.title});$("record-dialog").close();e.target.reset();toast("Record saved successfully.");await loadAll();render()}
   $("main-nav").addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b)go(b.dataset.page)});
   $("dialog-close").addEventListener("click",()=>$("record-dialog").close());$("dialog-cancel").addEventListener("click",()=>$("record-dialog").close());$("record-form").addEventListener("submit",save);
-  $("login-form").addEventListener("submit",async e=>{e.preventDefault();if(!db){$("auth-message").textContent="Database setup is not complete yet.";return}$("auth-message").textContent="Signing in…";const {data,error}=await db.functions.invoke("nightfall-auth",{body:{identifier:$("identifier").value.trim(),password:$("password").value}});if(error||!data?.access_token){$("auth-message").textContent="Sign-in failed. Check your details and try again.";return}const {data:sessionData,error:sessionError}=await db.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});if(sessionError){$("auth-message").textContent="Unable to start your session. Please try again.";return}const res=await db.from("nightfall_profiles").select("role,display_name,username,status").eq("id",sessionData.user.id).maybeSingle();signedIn(sessionData.user,res.data)});
+  $("login-form").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const message=$("auth-message"),identifier=$("identifier").value.trim(),password=$("password").value;
+    if(!db){message.textContent="Nightfall is not connected to its database. Please contact the system administrator.";return}
+    if(!identifier||!password){message.textContent="Enter your in-city name or email and password.";return}
+    const submit=e.submitter; if(submit)submit.disabled=true; message.textContent="Signing in…";
+    try{
+      let sessionData=null;
+      if(identifier.includes("@")){
+        const result=await db.auth.signInWithPassword({email:identifier,password});
+        if(result.error)throw result.error;
+        sessionData=result.data;
+      }else{
+        const result=await db.functions.invoke("nightfall-auth",{body:{identifier,password}});
+        if(result.error)throw new Error("Username sign-in service is not deployed or is unavailable. Sign in with your email for now, or ask the administrator to deploy the Nightfall auth function. ("+result.error.message+")");
+        if(!result.data?.access_token||!result.data?.refresh_token)throw new Error(result.data?.error||"The sign-in service returned an incomplete session.");
+        const started=await db.auth.setSession({access_token:result.data.access_token,refresh_token:result.data.refresh_token});
+        if(started.error)throw started.error;
+        sessionData=started.data;
+      }
+      if(!sessionData?.user)throw new Error("Supabase did not return a valid user session.");
+      const profileResult=await db.from("nightfall_profiles").select("role,display_name,username,status").eq("id",sessionData.user.id).maybeSingle();
+      if(profileResult.error)throw new Error("Could not load your Nightfall profile. The account database migration may be missing. ("+profileResult.error.message+")");
+      if(!profileResult.data){await db.auth.signOut();throw new Error("Your account profile was not found. Ask an administrator to check the Nightfall database setup.");}
+      signedIn(sessionData.user,profileResult.data);
+    }catch(error){
+      message.textContent=error?.message||"Sign-in failed. Please try again.";
+      console.error("Nightfall sign-in error:",error);
+    }finally{if(submit)submit.disabled=false;}
+  });
   $("show-register").addEventListener("click",()=>{$("login-form").classList.add("hidden");$("show-register").parentElement.classList.add("hidden");$("register-form").classList.remove("hidden")});
   $("show-login").addEventListener("click",()=>{$("register-form").classList.add("hidden");$("login-form").classList.remove("hidden");$("show-register").parentElement.classList.remove("hidden")});
-  $("register-form").addEventListener("submit",async e=>{e.preventDefault();const name=$("register-name").value.trim(),email=$("register-email").value.trim(),password=$("register-password").value,confirm=$("register-confirm").value;if(password.length<8||password!==confirm){$("register-message").textContent="Passwords must match and contain at least 8 characters.";return}$("register-message").textContent="Submitting account request…";const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,username:name}}});if(error){$("register-message").textContent=error.message;return}$("register-message").textContent=data.session?"Request submitted. Your account is pending Detective Command approval.":"Request submitted. Check your email to verify the address, then wait for Detective Command approval.";e.target.reset()});
+  $("register-form").addEventListener("submit",async e=>{
+    e.preventDefault();const message=$("register-message");
+    if(!db){message.textContent="Nightfall is not connected to its database. Please contact the system administrator.";return}
+    const name=$("register-name").value.trim(),email=$("register-email").value.trim(),password=$("register-password").value,confirm=$("register-confirm").value;
+    if(!name||!email){message.textContent="Enter your in-city name and email address.";return}
+    if(password.length<8||password!==confirm){message.textContent="Passwords must match and contain at least 8 characters.";return}
+    const submit=e.submitter;if(submit)submit.disabled=true;message.textContent="Submitting account request…";
+    try{
+      const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,username:name}}});
+      if(error)throw error;
+      message.textContent=data.session?"Request submitted. Your account is pending Detective Command approval.":"Request submitted. Check your email to verify the address, then wait for Detective Command approval.";
+      e.target.reset();
+    }catch(error){message.textContent=error?.message||"Could not submit your account request.";console.error("Nightfall registration error:",error)}
+    finally{if(submit)submit.disabled=false}
+  });
   async function loadAccountRequests(){const target=$("account-requests");if(!target)return;if(profile.role!=="admin"&&profile.role!=="command"){target.textContent="You do not have permission to review account requests.";return}const {data,error}=await db.from("nightfall_profiles").select("id,display_name,username,status,created_at").order("created_at",{ascending:false}).limit(100);if(error){target.textContent="Unable to load account requests: "+error.message;return}const pending=(data||[]).filter(a=>a.status==="pending");target.innerHTML=pending.length?pending.map(a=>`<div class="account-request"><div><b>${esc(a.display_name||a.username||"Unnamed account")}</b><small>${esc(a.username||"")} · ${dateText(a.created_at)}</small></div><button class="approve-btn" data-approve="${esc(a.id)}">Approve</button></div>`).join(""):"<p class=muted-small>No pending account requests.</p>";target.querySelectorAll("[data-approve]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;const {error}=await db.from("nightfall_profiles").update({status:"approved"}).eq("id",b.dataset.approve);if(error){toast("Approval failed: "+error.message);b.disabled=false;return}toast("Account approved.");loadAccountRequests()}))}
   $("logout-btn").addEventListener("click",async()=>{await db.auth.signOut();user=null;$("app-view").classList.add("hidden");$("auth-view").classList.remove("hidden")});
   if(!configured||!window.supabase){setupNotice()}else{db=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:true}});db.auth.getSession().then(async({data})=>{if(data.session){const p=await db.from("nightfall_profiles").select("role,display_name,username,status").eq("id",data.session.user.id).maybeSingle();signedIn(data.session.user,p.data)}})}
