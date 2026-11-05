@@ -86,7 +86,14 @@
     if(password.length<8||password!==confirm){message.textContent="Passwords must match and contain at least 8 characters.";return}
     const submit=e.submitter;if(submit)submit.disabled=true;message.textContent="Submitting account request…";
     try{
-      const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,username:name}}});
+      const {data,error}=await db.auth.signUp({
+        email,
+        password,
+        options:{
+          data:{full_name:name,username:name},
+          emailRedirectTo:"https://lspd-government.github.io/LSPD-NIGHTFALL-INTELL/"
+        }
+      });
       if(error)throw error;
       message.textContent=data.session?"Request submitted. Your account is pending Detective Command approval.":"Request submitted. Check your email to verify the address, then wait for Detective Command approval.";
       e.target.reset();
