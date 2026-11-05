@@ -1,34 +1,37 @@
 # LSPD NIGHTFALL INTELL
 
-A separate intelligence workspace for the Los Santos Police Department roleplay community. This repository is independent from the existing LSPD Nightwatch website.
+A fresh intelligence workspace for the Los Santos Police Department roleplay community. This is a separate project from Nightwatch.
 
-## Current status
+## Included sections
+- Overview dashboard and workspace index
+- Case management
+- Warrants
+- RICO investigations
+- Corruption cases
+- Suspect database
+- Gang intelligence
+- Intelligence reports
+- Detective directory
+- Administration and access guidance
 
-- Responsive Nightfall sign-in and dashboard interface.
-- Supabase email/password authentication integration.
-- Initial case, warrant, and persons-of-interest record views.
-- Starter database schema with row-level security policies.
-- No credentials or service-role keys are committed.
+The visual direction is a midnight navy night-sky theme with subtle stars, blue atmospheric lighting, and a responsive layout.
 
-## Setup checklist
-
-1. Create/use the separate Supabase project intended for Nightfall.
+## Fresh setup
+1. Use the dedicated, new Supabase project for Nightfall.
 2. In **Project Settings → API**, copy the Project URL and the **anon/public** key.
-3. Copy `config.example.js` to a new file named `config.js`; enter those two values. Never use a `service_role` key in browser code.
-4. In the correct Supabase project's **SQL Editor**, run the complete contents of `supabase/schema.sql`.
-5. In Supabase **Authentication → Providers**, enable Email. Create/invite department accounts using the authentication controls you choose for your community.
-6. Sign in once with your account. In the SQL Editor, run the admin promotion statement at the bottom of `supabase/schema.sql`, replacing the email with your login email.
-7. Enable GitHub Pages for this repository: **Settings → Pages → Deploy from a branch → main → /(root) → Save**.
-8. Add `config.js` for the deployed site using the Project URL and anon/public key. The anon key is public by design; database access must be protected by RLS. Never publish the service-role key.
+3. Copy \`config.example.js\` to \`config.js\` and enter those two values. Never use a service-role/secret key in browser code.
+4. In that same new project's **SQL Editor**, run the complete \`supabase/schema.sql\` file. It creates empty Nightfall tables only; no old records are imported.
+5. Enable Email under **Authentication → Providers** and create your account.
+6. Sign in once. Then run the admin promotion statement at the bottom of the SQL file after replacing the placeholder with your account email.
+7. Enable GitHub Pages: **Repository Settings → Pages → Deploy from a branch → main → /(root) → Save**.
+8. Ensure \`config.js\` exists in the repository for the published site. Do not commit secrets; the anon/public key is intended for browser use and must be protected by RLS.
 
-## Files
+## Security notes
+- Row Level Security is enabled for all application tables.
+- All authenticated staff can read records and create entries attributed to their own account.
+- Command/Admin roles can update records; only Admin can delete records through database policies.
+- Role changes are not exposed as a browser control.
+- Use fictional roleplay information only. Review access and retention policies before storing sensitive material.
 
-- `index.html` — application structure.
-- `styles.css` — responsive visual design.
-- `app.js` — authentication and record dashboard.
-- `config.example.js` — safe configuration template.
-- `supabase/schema.sql` — database tables, trigger, and RLS policies.
-
-## Important limitations
-
-This is a starter version. It does not yet include record editing/deletion in the interface, file uploads, audit-log automation, role-management screens, password reset UI, or production deployment configuration. The SQL file must be run manually in the correct Supabase project before the app can connect. Use fictional roleplay information only until your organization has reviewed security and retention requirements.
+## Current limitations
+This first full structure includes sign-in, record creation, searchable lists, dashboard counts, and a system/admin information page. Record editing/deletion screens, file attachments, password reset UI, and full activity-log viewer are not included yet. Those can be added after the initial deployment is tested.
