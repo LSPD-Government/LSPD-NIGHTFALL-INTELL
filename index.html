@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>LSPD | Nightfall Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div id="setup-notice" class="setup-notice hidden"></div>
+  <main id="auth-view" class="auth-layout">
+    <section class="auth-panel">
+      <div class="brand-mark">NF</div>
+      <p class="eyebrow">LOS SANTOS POLICE DEPARTMENT</p>
+      <h1>Nightfall <span>Intelligence</span></h1>
+      <p class="muted">A secure workspace for department intelligence, investigations, and case coordination.</p>
+      <form id="login-form" class="auth-form">
+        <label>Email address<input id="email" type="email" autocomplete="username" required placeholder="name@department.gov"></label>
+        <label>Password<input id="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></label>
+        <button class="primary-btn" type="submit">Sign in <span>→</span></button>
+        <p id="auth-message" class="form-message" role="status"></p>
+      </form>
+      <p class="footnote">Authorized department personnel only. All access is subject to department policy.</p>
+    </section>
+    <aside class="auth-aside"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="aside-content"><span class="status-dot"></span> INTELLIGENCE OPERATIONS <h2>Clarity in every case.</h2><p>Centralized records. Clear accountability. Better coordination.</p></div><div class="aside-footer">NIGHTFALL SYSTEMS <span>•</span> LSPD</div></aside>
+  </main>
+  <main id="app-view" class="app-layout hidden">
+    <aside class="sidebar">
+      <div class="side-brand"><div class="brand-mark small">NF</div><div><b>NIGHTFALL</b><small>INTELLIGENCE</small></div></div>
+      <div class="side-label">WORKSPACE</div>
+      <nav id="main-nav">
+        <button class="nav-item active" data-page="overview"><span>▦</span> Overview</button>
+        <button class="nav-item" data-page="cases"><span>▤</span> Case files</button>
+        <button class="nav-item" data-page="warrants"><span>⌕</span> Warrants</button>
+        <button class="nav-item" data-page="suspects"><span>◉</span> Persons of interest</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="user-chip"><div class="avatar" id="user-avatar">?</div><div><b id="user-email">Officer</b><small id="user-role">Department user</small></div></div><button id="logout-btn" class="logout-btn">↪ Sign out</button></div>
+    </aside>
+    <section class="main-area">
+      <header class="topbar"><div><p class="eyebrow">LSPD / INTELLIGENCE DIVISION</p><h1 id="page-title">Overview</h1></div><div class="topbar-right"><span class="live-pill"><i></i> SYSTEM ONLINE</span><span id="today-label" class="date-label"></span></div></header>
+      <section id="page-content" class="page-content"></section>
+      <footer class="app-footer">LSPD NIGHTFALL INTELL <span>•</span> RESTRICTED DEPARTMENT SYSTEM</footer>
+    </section>
+  </main>
+  <dialog id="record-dialog" class="record-dialog"><form id="record-form" method="dialog"><div class="dialog-head"><div><p class="eyebrow">NEW RECORD</p><h2 id="dialog-title">Create record</h2></div><button type="button" id="dialog-close" class="icon-btn" aria-label="Close">×</button></div><div id="dialog-fields" class="dialog-fields"></div><div class="dialog-actions"><button type="button" class="secondary-btn" id="dialog-cancel">Cancel</button><button type="submit" class="primary-btn">Save record</button></div></form></dialog>
+  <div id="toast" class="toast" role="status"></div>
+</body>
+</html>
