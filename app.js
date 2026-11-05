@@ -59,7 +59,20 @@
       if(!profileResult.data){await db.auth.signOut();throw new Error("Your account profile was not found. Ask an administrator to check the Nightfall database setup.");}
       signedIn(sessionData.user,profileResult.data);
     }catch(error){
-      message.textContent=error?.message||"Sign-in failed. Please try again.";
+      const code=String(error?.code||error?.name||"").toLowerCase();
+      const raw=String(error?.message||"");
+      const detail=raw.toLowerCase();
+      if(code.includes("email_not_confirmed")||detail.includes("email not confirmed")){
+        message.textContent="Your email address has not been verified yet. Open the verification email from Supabase, confirm your address, then try signing in again.";
+      }else if(detail.includes("invalid login credentials")||detail.includes("invalid sign-in details")){
+        message.textContent="Those sign-in details were not accepted. Check your email or in-city name and password. If you just registered, verify your email first.";
+      }else if(detail.includes("username sign-in service")||detail.includes("function")&&detail.includes("unavailable")){
+        message.textContent="Email sign-in may still work, but in-city-name sign-in is currently unavailable. Try the email address you registered with.";
+      }else if(detail.includes("column")&&(detail.includes("status")||detail.includes("username"))){
+        message.textContent="Nightfall's account database migration is incomplete. Detective Command must run the account-registration migration in Supabase before sign-in can finish.";
+      }else{
+        message.textContent=raw||"Sign-in failed. Please try again.";
+      }
       console.error("Nightfall sign-in error:",error);
     }finally{if(submit)submit.disabled=false;}
   });
