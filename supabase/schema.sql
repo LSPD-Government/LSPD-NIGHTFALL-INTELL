@@ -109,3 +109,49 @@ grant select,insert on public.nightfall_activity to authenticated;
 -- update public.nightfall_profiles p set role='admin'
 -- from auth.users u where p.id=u.id and u.email='YOUR-LOGIN-EMAIL';
 -- Only run that statement after replacing the email with your own.
+
+
+-- NIGHTFALL ACCOUNT REGISTRATION + COMMAND APPROVAL MIGRATION
+-- Run this section once in the NEW Nightfall project's Supabase SQL Editor.
+alter table public.nightfall_profiles add column if not exists username text;
+alter table public.nightfall_profiles add column if not exists username_normalized text;
+alter table public.nightfall_profiles add column if not exists status text not null default 'pending' check (status in ('pending','approved','rejected'));
+update public.nightfall_profiles set username=coalesce(username,display_name), username_normalized=coalesce(username_normalized,lower(trim(coalesce(username,display_name,''))));
+create unique index if not exists nightfall_profiles_username_normalized_key on public.nightfall_profiles(username_normalized) where username_normalized is not null and username_normalized<>'';
+create or replace function public.nightfall_handle_new_user()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+declare v_name text; v_username text;
+begin
+  v_name := coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email,'@',1));
+  v_username := lower(trim(coalesce(new.raw_user_meta_data ->> 'username',v_name)));
+  insert into public.nightfall_profiles(id,display_name,username,username_normalized,role,status)
+  values(new.id,v_name,v_name,v_username,'detective','pending')
+  on conflict(id) do update set display_name=excluded.display_name,username=excluded.username,username_normalized=excluded.username_normalized;
+  return new;
+end;
+$$;
+drop policy if exists "profile update by command" on public.nightfall_profiles;
+create policy "profile update by command" on public.nightfall_profiles for update to authenticated
+using (public.nightfall_user_role() in ('command','admin'))
+with check (public.nightfall_user_role() in ('command','admin'));
+grant update on public.nightfall_profiles to authenticated;
+create or replace function public.nightfall_is_approved()
+returns boolean language sql stable security definer set search_path = ''
+as $$ select exists(select 1 from public.nightfall_profiles where id=(select auth.uid()) and status='approved') $$;
+do $$
+declare t text;
+begin
+  foreach t in array array['nightfall_cases','nightfall_warrants','nightfall_rico','nightfall_corruption','nightfall_suspects','nightfall_gangs','nightfall_reports','nightfall_directory'] loop
+    execute format('drop policy if exists "staff read %1$s" on public.%1$I',t);
+    execute format('create policy "staff read %1$s" on public.%1$I for select to authenticated using (public.nightfall_is_approved())',t);
+    execute format('drop policy if exists "staff insert %1$s" on public.%1$I',t);
+    execute format('create policy "staff insert %1$s" on public.%1$I for insert to authenticated with check (public.nightfall_is_approved() and created_by=(select auth.uid()))',t);
+  end loop;
+end $$;
+drop policy if exists "staff read activity" on public.nightfall_activity;
+create policy "staff read activity" on public.nightfall_activity for select to authenticated using (public.nightfall_is_approved());
+drop policy if exists "staff add activity" on public.nightfall_activity;
+create policy "staff add activity" on public.nightfall_activity for insert to authenticated with check (public.nightfall_is_approved() and user_id=(select auth.uid()));
+-- First-time setup only: after you register, replace the email and run this once to activate your own Command/Admin account.
+-- update public.nightfall_profiles p set role='admin', status='approved' from auth.users u where p.id=u.id and u.email='YOUR-EMAIL-HERE';
