@@ -161,3 +161,20 @@ drop policy if exists "staff add activity" on public.nightfall_activity;
 create policy "staff add activity" on public.nightfall_activity for insert to authenticated with check (public.nightfall_is_approved() and user_id=(select auth.uid()));
 -- First-time setup only: after you register, replace the email and run this once to activate your own Command/Admin account.
 -- update public.nightfall_profiles p set role='admin', status='approved' from auth.users u where p.id=u.id and u.email='YOUR-EMAIL-HERE';
+
+
+-- NIGHTFALL RECORD OWNERSHIP PERMISSIONS
+-- Everyone with approved Nightfall access can view records.
+-- Only the account that created a record can edit or delete that record.
+do $$
+declare t text;
+begin
+  foreach t in array array['nightfall_cases','nightfall_warrants','nightfall_rico','nightfall_corruption','nightfall_suspects','nightfall_gangs','nightfall_reports','nightfall_directory'] loop
+    execute format('drop policy if exists "command update %1$s" on public.%1$I',t);
+    execute format('drop policy if exists "admin delete %1$s" on public.%1$I',t);
+    execute format('drop policy if exists "creator update %1$s" on public.%1$I',t);
+    execute format('create policy "creator update %1$s" on public.%1$I for update to authenticated using (public.nightfall_is_approved() and created_by=(select auth.uid())) with check (public.nightfall_is_approved() and created_by=(select auth.uid()))',t);
+    execute format('drop policy if exists "creator delete %1$s" on public.%1$I',t);
+    execute format('create policy "creator delete %1$s" on public.%1$I for delete to authenticated using (public.nightfall_is_approved() and created_by=(select auth.uid()))',t);
+  end loop;
+end $$;
