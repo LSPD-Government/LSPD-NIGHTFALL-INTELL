@@ -135,7 +135,9 @@ drop policy if exists "profile update by command" on public.nightfall_profiles;
 create policy "profile update by command" on public.nightfall_profiles for update to authenticated
 using (public.nightfall_user_role() in ('command','admin'))
 with check (public.nightfall_user_role() in ('command','admin'));
-grant update on public.nightfall_profiles to authenticated;
+-- Limit browser-side profile changes to approval status only. Roles are changed in SQL by an administrator.
+revoke update on public.nightfall_profiles from authenticated;
+grant update(status) on public.nightfall_profiles to authenticated;
 create or replace function public.nightfall_is_approved()
 returns boolean language sql stable security definer set search_path = ''
 as $$ select exists(select 1 from public.nightfall_profiles where id=(select auth.uid()) and status='approved') $$;
@@ -147,8 +149,12 @@ begin
     execute format('create policy "staff read %1$s" on public.%1$I for select to authenticated using (public.nightfall_is_approved())',t);
     execute format('drop policy if exists "staff insert %1$s" on public.%1$I',t);
     execute format('create policy "staff insert %1$s" on public.%1$I for insert to authenticated with check (public.nightfall_is_approved() and created_by=(select auth.uid()))',t);
+    execute format('drop policy if exists "command update %1$s" on public.%1$I',t);
+    execute format('create policy "command update %1$s" on public.%1$I for update to authenticated using (public.nightfall_is_approved() and public.nightfall_user_role() in (''command'',''admin'')) with check (public.nightfall_is_approved() and public.nightfall_user_role() in (''command'',''admin''))',t);
+    execute format('drop policy if exists "admin delete %1$s" on public.%1$I',t);
+    execute format('create policy "admin delete %1$s" on public.%1$I for delete to authenticated using (public.nightfall_is_approved() and public.nightfall_user_role()=''admin'')',t);
   end loop;
-end $$;
+end $;
 drop policy if exists "staff read activity" on public.nightfall_activity;
 create policy "staff read activity" on public.nightfall_activity for select to authenticated using (public.nightfall_is_approved());
 drop policy if exists "staff add activity" on public.nightfall_activity;
