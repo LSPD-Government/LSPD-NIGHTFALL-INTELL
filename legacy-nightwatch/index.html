@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>LSPD Nightwatch | Detective Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="brand-mark">N</div><div><b>LSPD <span>NIGHTWATCH</span></b><small>DETECTIVE DIVISION</small></div></div>
+    <div class="nav-label">WORKSPACE</div>
+    <nav id="nav">
+      <button class="nav-item active" data-page="dashboard"><i>▦</i> Dashboard</button>
+      <button class="nav-item" data-page="cases"><i>▤</i> Case Management <em id="caseNavCount">0</em></button>
+      <button class="nav-item" data-page="warrants"><i>⌕</i> Warrants</button>
+      <button class="nav-item" data-page="rico"><i>◎</i> RICO Investigations</button>
+      <button class="nav-item" data-page="corruption"><i>◇</i> Corruption Cases</button>
+      <div class="nav-label nav-gap">INTELLIGENCE</div>
+      <button class="nav-item" data-page="suspects"><i>♙</i> Suspect Database</button>
+      <button class="nav-item" data-page="gangs"><i>⌘</i> Gang Intelligence</button>
+      <button class="nav-item" data-page="intelligence"><i>◈</i> Intelligence Reports</button>
+      <div class="nav-label nav-gap">DIVISION</div>
+      <button class="nav-item" data-page="detectives"><i>♧</i> Detective Directory</button>
+      <button class="nav-item" data-page="admin"><i>⚙</i> Administration</button>
+    </nav>
+    <div class="sidebar-bottom"><div class="status-dot"></div><div><b>LOCAL SYSTEM</b><small>Browser storage enabled</small></div></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><button class="mobile-menu" id="menuBtn">☰</button><div class="crumb">LSPD <span>/</span> <b id="crumb">Dashboard</b></div><div class="top-actions"><span class="live-pill"><i></i> SYSTEM ONLINE</span><button class="icon-btn" title="Notifications">♧</button><button class="profile" id="profileBtn"><span class="avatar">D</span><span><b id="profileName">Detective</b><small id="profileRank">Detective Division</small></span><span>⌄</span></button></div></header>
+    <section class="content">
+      <div class="hero" id="hero"><div class="hero-copy"><div class="eyebrow"><span></span> LOS SANTOS POLICE DEPARTMENT</div><h1>Intelligence at<br><span>the forefront.</span></h1><p>One command center for investigations, intelligence, and the pursuit of the truth.</p><div class="hero-meta"><span>◷ <b id="today"></b></span><span>•</span><span>DETECTIVE DIVISION PORTAL</span></div></div><div class="hero-art"><div class="cityline"></div><div class="beam"></div><div class="badge-watermark">✦</div><div class="hero-caption">PROTECT · SERVE · INVESTIGATE</div></div></div>
+      <div class="page-heading"><div><div class="eyebrow blue">OVERVIEW</div><h2 id="pageTitle">Division Dashboard</h2><p id="pageSub">A live overview of your division's activity and investigations.</p></div><button class="primary-btn" id="newRecord">＋ New Record</button></div>
+      <div id="pageBody"></div>
+      <footer> <span>© LSPD NIGHTWATCH</span><span>DETECTIVE DIVISION · ROLEPLAY RECORD SYSTEM</span></footer>
+    </section>
+  </main>
+</div>
+<div class="modal-backdrop" id="modal"><div class="modal"><div class="modal-head"><div><div class="eyebrow blue">NIGHTWATCH RECORDS</div><h3 id="modalTitle">Create Record</h3></div><button class="close-btn" id="closeModal">×</button></div><form id="recordForm"><div id="formFields" class="form-grid"></div><div class="modal-actions"><button type="button" class="secondary-btn" id="cancelModal">Cancel</button><button class="primary-btn" type="submit">Save Record</button></div></form></div></div>
+<div class="report-backdrop" id="reportModal"><article class="report-sheet"><div class="report-toolbar"><span class="report-classification">LSPD · OFFICIAL ROLEPLAY RECORD</span><button class="close-btn" id="closeReport" aria-label="Close report">×</button></div><div id="reportContent"></div></article></div><div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body></html>
