@@ -178,3 +178,31 @@ begin
     execute format('create policy "creator delete %1$s" on public.%1$I for delete to authenticated using (public.nightfall_is_approved() and created_by=(select auth.uid()))',t);
   end loop;
 end $$;
+
+
+-- SECURE ACCOUNT APPROVAL RPC
+-- Lets Command/Admin approve accounts without granting browser clients direct
+-- UPDATE privileges on the profiles table.
+create or replace function public.nightfall_approve_account(target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if public.nightfall_user_role() not in ('command','admin') then
+    raise exception 'Only Detective Command or Admin can approve accounts';
+  end if;
+
+  update public.nightfall_profiles
+  set status = 'approved'
+  where id = target_user_id and status = 'pending';
+
+  if not found then
+    raise exception 'Pending account was not found';
+  end if;
+end;
+$$;
+
+revoke all on function public.nightfall_approve_account(uuid) from public;
+grant execute on function public.nightfall_approve_account(uuid) to authenticated;
